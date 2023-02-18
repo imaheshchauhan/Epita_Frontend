@@ -6,11 +6,13 @@
  * https://reactrouter.com/docs/en/v6/upgrading/v5
  */
 import { Routes, Route } from 'react-router-dom'
+import { AddMovie } from '../pages/AddMovie'
 
 import { Home } from '../pages/Home'
 import { Login } from '../pages/Login'
 import { Metrics } from '../pages/Metrics'
 import { Register } from '../pages/Register'
+import { ShowMovie } from '../pages/ShowMovie'
 import { Users } from '../pages/Users'
 import { PrivateRoute } from './PrivateRoute'
 import { PublicRoute } from './PublicRoute'
@@ -60,6 +62,24 @@ export const RouteList = () => (
       element={
         <PrivateRoute permissions={['users.list', 'users.create']}>
           <Users />
+        </PrivateRoute>
+      }
+    />
+
+    <Route
+      path="/movies/create"
+      element={
+        <PrivateRoute>
+          <AddMovie />
+        </PrivateRoute>
+      }
+    />
+
+    <Route
+      path="/movies/:id"
+      element={
+        <PrivateRoute>
+          <ShowMovie />
         </PrivateRoute>
       }
     />

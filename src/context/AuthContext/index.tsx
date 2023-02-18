@@ -17,9 +17,16 @@ interface SignInCredentials {
   password: string
 }
 
+interface RegisterCredentials {
+  name: string
+  email: string
+  password: string
+}
+
 interface AuthContextData {
   signIn: (credentials: SignInCredentials) => Promise<void | AxiosError>
   signOut: () => void
+  register: (credentials: RegisterCredentials) => Promise<void | AxiosError>
   user: User
   isAuthenticated: boolean
   loadingUserData: boolean
@@ -42,7 +49,21 @@ export function AuthProvider ({ children }: AuthProviderProps) {
 
   async function signIn ({ email, password }: SignInCredentials) {
     try {
-      const response = await api.post('/sessions', { email, password })
+      const response = await api.post('/v1/auth/login', { email, password })
+      const { token, refreshToken, permissions, roles } = response.data
+
+      createTokenCookies(token, refreshToken)
+      setUser({ email, permissions, roles })
+      setAuthorizationHeader(api.defaults, token)
+    } catch (error) {
+      const err = error as AxiosError
+      return err
+    }
+  }
+
+  async function register ({ name, email, password }: RegisterCredentials) {
+    try {
+      const response = await api.post('/v1/auth/register', { name, email, password })
       const { token, refreshToken, permissions, roles } = response.data
 
       createTokenCookies(token, refreshToken)
@@ -72,7 +93,8 @@ export function AuthProvider ({ children }: AuthProviderProps) {
       setLoadingUserData(true)
 
       try {
-        const response = await api.get('/me')
+        const email = user?.email
+        const response = await api.get('/v1/users/email', { params: { email } })
 
         if (response?.data) {
           const { email, permissions, roles } = response.data
@@ -97,7 +119,8 @@ export function AuthProvider ({ children }: AuthProviderProps) {
       user: userData,
       loadingUserData,
       signIn,
-      signOut
+      signOut,
+      register
     }}>
       {children}
     </AuthContext.Provider>
